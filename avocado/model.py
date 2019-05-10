@@ -16,7 +16,7 @@ import numpy
 import keras
 
 from keras.layers import Input, Embedding, Dense
-from keras.layers import Multiply, Dot, Flatten, concatenate
+from keras.layers import Multiply, Dot, Flatten, concatenate, BatchNormalization, Activation
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -28,6 +28,8 @@ def build_model(n_celltypes, n_celltype_factors, average_input_shape, n_assays, 
 	freeze_genome_5kbp=False, freeze_network=False):
 	"""This function builds a multi-scale deep tensor factorization model."""
 
+        average_input = Input(shape=(2001,), name="average_input")
+        
 	celltype_input = Input(shape=(1,), name="celltype_input")
 	celltype_embedding = Embedding(n_celltypes, n_celltype_factors, 
 		input_length=1, name="celltype_embedding")
@@ -58,15 +60,16 @@ def build_model(n_celltypes, n_celltype_factors, average_input_shape, n_assays, 
 	genome_5kbp_embedding.trainable = not freeze_genome_5kbp
 	genome_5kbp = Flatten()(genome_5kbp_embedding(genome_5kbp_input))
 
-	layers = [celltype, assay, genome_25bp, genome_250bp, genome_5kbp]
-	inputs = (celltype_input, assay_input, genome_25bp_input, 
-		genome_250bp_input, genome_5kbp_input)
+        layers = [average_input, celltype, assay, genome_25bp, genome_250bp, genome_5kbp]
+        inputs = (average_input, celltype_input, assay_input, genome_25bp_input, genome_250bp_input, genome_5kbp_input)
 
 	x = concatenate(layers)
 	for i in range(n_layers):
-		layer = Dense(n_nodes, activation='relu', name="dense_{}".format(i))
-		layer.trainable = not freeze_network
-		x = layer(x)
+                layer = Dense(n_nodes, name="dense_{}".format(i), activation=None)
+                layer.trainable = not freeze_network
+                x = layer(x)
+                x = BatchNormalization()(x)
+                x = Activation('relu')(x)
 
 	layer = Dense(1, name="y_pred")
 	layer.trainable = not freeze_network
