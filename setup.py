@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='guacomole-epigenome',
+    name='guacamole-epigenome',
     version='0.0.1',
     packages=['avocado'],
     license='LICENSE.txt',
