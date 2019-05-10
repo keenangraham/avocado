@@ -1,4 +1,4 @@
-import numpy as np
+juuimport numpy as np
 
 
 def get_padded_window(x, genomic_position, n_positions, desired_window_size):
@@ -58,3 +58,41 @@ def sequential_data_generator(celltypes, assays, data, n_positions, batch_size, 
         }
         yield d, value
         start += batch_size
+
+
+def data_generator(celltypes, assays, data, n_positions, batch_size, average_data, desired_window_size=2001):
+    while True:
+        celltype_idxs = np.zeros(batch_size, dtype='int32')
+        assay_idxs = np.zeros(batch_size, dtype='int32')
+        genomic_25bp_idxs = np.random.randint(n_positions, size=batch_size)
+        genomic_250bp_idxs = genomic_25bp_idxs // 10
+        genomic_5kbp_idxs = genomic_25bp_idxs // 200
+        value = np.zeros(batch_size)
+        average = np.zeros(batch_size * desired_window_size)
+
+        keys = data.keys()
+        idxs = np.random.randint(len(data), size=batch_size)
+
+        for i, idx in enumerate(idxs):
+                celltype, assay = keys[idx]
+                track = data[(celltype, assay)]
+
+                celltype_idxs[i] = celltypes.index(celltype)
+                assay_idxs[i] = assays.index(assay)
+                value[i] = track[genomic_25bp_idxs[i]]
+                average[i * desired_window_size: (i + 1) * desired_window_size] = get_padded_window(
+                        average_data[assay],
+                        genomic_25bp_idxs[i],
+                        n_positions,
+                        desired_window_size
+                )
+
+        d = {
+                'celltype_input': celltype_idxs,
+                'assay_input': assay_idxs,
+                'genome_25bp_input': genomic_25bp_idxs,
+                'genome_250bp_input': genomic_250bp_idxs,
+                'genome_5kbp_input': genomic_5kbp_idxs
+        }
+
+        yield d, value
