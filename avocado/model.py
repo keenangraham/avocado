@@ -855,8 +855,8 @@ class Avocado(object):
 		assay_idxs = numpy.ones(self.n_genomic_positions) * assay_idx
 
 		genomic_25bp_idxs  = numpy.arange(self.n_genomic_positions)
-		genomic_250bp_idxs = numpy.arange(self.n_genomic_positions) / 10
-		genomic_5kbp_idxs  = numpy.arange(self.n_genomic_positions) / 200
+		genomic_250bp_idxs = numpy.arange(self.n_genomic_positions) // 10
+		genomic_5kbp_idxs  = numpy.arange(self.n_genomic_positions) // 200
 
 		X = {
 			'celltype_input': celltype_idxs, 
