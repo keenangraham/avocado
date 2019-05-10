@@ -935,7 +935,7 @@ class Guacamole:
                         'genome_25bp_input': genomic_25bp_idxs, 
                         'genome_250bp_input': genomic_250bp_idxs,
                         'genome_5kbp_input': genomic_5kbp_idxs,
-                        'average_data', desired_window_size,
+                        'average_data': desired_window_size
                 }
                 
                 track = self.model.predict(X, batch_size=self.batch_size, 
