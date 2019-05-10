@@ -2,12 +2,11 @@ import numpy as np
 
 
 def get_padded_window(x, genomic_position, n_positions, desired_window_size):
-    center_position = genomic_position
     window = (desired_window_size - 1) // 2
-    data = x[max(0, center_position - window): center_position + window + 1]
+    data = x[max(0, genomic_position - window): genomic_position + window + 1]
     if data.size != desired_window_size:
-        right_flank = (center_position + window) - n_positions
-        left_flank = (center_position - window)
+        right_flank = (genomic_position + window) - n_positions
+        left_flank = (genomic_position - window)
         if right_flank >= 0:
             data = np.pad(data, (0, right_flank + 1), 'constant')
         else:
