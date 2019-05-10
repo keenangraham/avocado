@@ -92,7 +92,8 @@ def data_generator(celltypes, assays, data, n_positions, batch_size, average_dat
                 'assay_input': assay_idxs,
                 'genome_25bp_input': genomic_25bp_idxs,
                 'genome_250bp_input': genomic_250bp_idxs,
-                'genome_5kbp_input': genomic_5kbp_idxs
+                'genome_5kbp_input': genomic_5kbp_idxs,
+                'average_input': average.reshape(-1, desired_window_size)
         }
 
         yield d, value
