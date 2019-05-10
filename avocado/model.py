@@ -28,7 +28,7 @@ def build_model(n_celltypes, n_celltype_factors, average_input_shape, n_assays, 
 	freeze_genome_5kbp=False, freeze_network=False):
 	"""This function builds a multi-scale deep tensor factorization model."""
 
-        average_input = Input(shape=(2001,), name="average_input")
+        average_input = Input(shape=(average_input_shape,), name="average_input")
         
 	celltype_input = Input(shape=(1,), name="celltype_input")
 	celltype_embedding = Embedding(n_celltypes, n_celltype_factors, 
