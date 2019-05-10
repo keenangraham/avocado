@@ -239,7 +239,7 @@ class Guacamole:
                 self.model = build_model(
                         n_celltypes=self.n_celltypes,
                         n_celltype_factors=self.n_celltype_factors,
-                        average_input_shape=self.average_input_shape
+                        average_input_shape=self.average_input_shape,
                         n_assays=self.n_assays,
                         n_assay_factors=self.n_assay_factors,
                         n_genomic_positions=self.n_genomic_positions,
@@ -583,7 +583,7 @@ class Guacamole:
                 model = build_model(
                         n_celltypes=len(new_celltypes),
                         n_celltype_factors=self.n_celltype_factors,
-                        average_input_shape=self.average_input_shape
+                        average_input_shape=self.average_input_shape,
                         n_assays=self.n_assays,
                         n_assay_factors=self.n_assay_factors,
                         n_genomic_positions=self.n_genomic_positions,
@@ -651,7 +651,7 @@ class Guacamole:
                 model = build_model(
                         n_celltypes=self.n_celltypes,
                         n_celltype_factors=self.n_celltype_factors,
-                        average_input_shape=self.average_input_shape
+                        average_input_shape=self.average_input_shape,
                         n_assays=self.n_assays,
                         n_assay_factors=self.n_assay_factors,
                         n_genomic_positions=self.n_genomic_positions,
@@ -784,7 +784,7 @@ class Guacamole:
                 model = build_model(
                         n_celltypes=self.n_celltypes,
                         n_celltype_factors=self.n_celltype_factors,
-                        average_input_shape=self.average_input_shape
+                        average_input_shape=self.average_input_shape,
                         n_assays=len(new_assays),
                         n_assay_factors=self.n_assay_factors,
                         n_genomic_positions=self.n_genomic_positions,
@@ -852,7 +852,7 @@ class Guacamole:
                 model = build_model(
                         n_celltypes=self.n_celltypes,
                         n_celltype_factors=self.n_celltype_factors,
-                        average_input_shape=self.average_input_shape
+                        average_input_shape=self.average_input_shape,
                         n_assays=self.n_assays,
                         n_assay_factors=self.n_assay_factors,
                         n_genomic_positions=self.n_genomic_positions,
