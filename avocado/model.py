@@ -8,7 +8,7 @@ of the human epigenome. This file has functions for building a deep tensor
 factorization model.
 """
 
-from .io import sequential_data_generator
+from .io import sequential_data_generator, get_padded_window
 from .io import data_generator
 
 import json
@@ -21,7 +21,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 
-def build_model(n_celltypes, n_celltype_factors, n_assays, n_assay_factors,
+def build_model(n_celltypes, n_celltype_factors, average_input_shape, n_assays, n_assay_factors,
 	n_genomic_positions, n_25bp_factors, n_250bp_factors, n_5kbp_factors,
 	n_layers, n_nodes, freeze_celltypes=False, freeze_assays=False,
 	freeze_genome_25bp=False, freeze_genome_250bp=False, 
@@ -232,23 +232,25 @@ class Guacamole:
 		self.freeze_genome_250bp = freeze_genome_250bp
 		self.freeze_genome_5kbp = freeze_genome_5kbp
 		self.freeze_network = freeze_network
+
 		self.model = build_model(
                         n_celltypes=self.n_celltypes,
-			n_celltype_factors=n_celltype_factors,
+			n_celltype_factors=self.n_celltype_factors,
+                        average_input_shape=self.average_input_shape
 			n_assays=self.n_assays,
-			n_assay_factors=n_assay_factors,
-			n_genomic_positions=n_genomic_positions,
-			n_25bp_factors=n_25bp_factors,
-			n_250bp_factors=n_250bp_factors,
-			n_5kbp_factors=n_5kbp_factors,
-			n_layers=n_layers,
-			n_nodes=n_nodes,
-			freeze_celltypes=freeze_celltypes,
-			freeze_assays=freeze_assays,
-			freeze_genome_25bp=freeze_genome_25bp,
-			freeze_genome_250bp=freeze_genome_250bp,
-			freeze_genome_5kbp=freeze_genome_5kbp,
-			freeze_network=freeze_network
+			n_assay_factors=self.n_assay_factors,
+			n_genomic_positions=self.n_genomic_positions,
+			n_25bp_factors=self.n_25bp_factors,
+			n_250bp_factors=self.n_250bp_factors,
+			n_5kbp_factors=self.n_5kbp_factors,
+			n_layers=self.n_layers,
+			n_nodes=self.n_nodes,
+			freeze_celltypes=self.freeze_celltypes,
+			freeze_assays=self.freeze_assays,
+			freeze_genome_25bp=self.freeze_genome_25bp,
+			freeze_genome_250bp=self.freeze_genome_250bp,
+			freeze_genome_5kbp=self.freeze_genome_5kbp,
+			freeze_network=self.freeze_network
                 )
 
 	@property
@@ -350,7 +352,7 @@ class Guacamole:
 
 		self.model.summary()
 
-	def fit(self, X_train, X_valid=None, n_epochs=200, epoch_size=120,
+	def fit(self, X_train, average_data, desired_window_size, X_valid=None, n_epochs=200, epoch_size=120,
 		verbose=1, callbacks=None, data_generator=None, **kwargs):
 		"""Fit the model to the given epigenomic tracks.
 
@@ -448,8 +450,15 @@ class Guacamole:
 							self.n_genomic_positions))
 
 
-		X_train_gen = data_generator or sequential_data_generator(self.celltypes, 
-			self.assays, X_train, self.n_genomic_positions, self.batch_size)
+		X_train_gen = data_generator or sequential_data_generator(
+                        self.celltypes, 
+			self.assays,
+                        X_train,
+                        self.n_genomic_positions,
+                        self.batch_size
+                        average_data,
+                        desired_window_size
+                )
 
 		if X_valid is not None:
 			X_valid_gen = data_generator(self.celltypes, self.assays, 
@@ -466,7 +475,7 @@ class Guacamole:
 
 		return history
 
-	def fit_celltypes(self, X_train, X_valid=None, n_epochs=200, epoch_size=120,
+	def fit_celltypes(self, X_train,  X_valid=None, n_epochs=200, epoch_size=120,
 		verbose=1, callbacks=None, **kwargs):
 		"""Add a new cell type(s) to an otherwise frozen model.
 
@@ -568,22 +577,25 @@ class Guacamole:
 
 		new_celltypes = list(numpy.unique([ct for ct, _ in X_train.keys()]))
 
-		model = build_model(n_celltypes=len(new_celltypes),
-							n_celltype_factors=self.n_celltype_factors,
-							n_assays=self.n_assays,
-							n_assay_factors=self.n_assay_factors,
-							n_genomic_positions=self.n_genomic_positions,
-							n_25bp_factors=self.n_25bp_factors,
-							n_250bp_factors=self.n_250bp_factors,
-							n_5kbp_factors=self.n_5kbp_factors,
-							n_layers=self.n_layers,
-							n_nodes=self.n_nodes,
-							freeze_celltypes=False,
-							freeze_assays=True,
-							freeze_genome_25bp=True,
-							freeze_genome_250bp=True,
-							freeze_genome_5kbp=True,
-							freeze_network=True)
+		model = build_model(
+                        n_celltypes=len(new_celltypes),
+			n_celltype_factors=self.n_celltype_factors,
+                        average_input_shape=self.average_input_shape
+			n_assays=self.n_assays,
+			n_assay_factors=self.n_assay_factors,
+			n_genomic_positions=self.n_genomic_positions,
+			n_25bp_factors=self.n_25bp_factors,
+			n_250bp_factors=self.n_250bp_factors,
+			n_5kbp_factors=self.n_5kbp_factors,
+			n_layers=self.n_layers,
+			n_nodes=self.n_nodes,
+			freeze_celltypes=False,
+			freeze_assays=True,
+			freeze_genome_25bp=True,
+			freeze_genome_250bp=True,
+			freeze_genome_5kbp=True,
+			freeze_network=True
+                )
 
 		for old_layer, new_layer in zip(self.model.layers, model.layers):
 			if 'input' in old_layer.name:
@@ -594,8 +606,15 @@ class Guacamole:
 			new_layer.set_weights(old_layer.get_weights())
 
 
-		X_train_gen = sequential_data_generator(new_celltypes, self.assays, 
-			X_train, self.n_genomic_positions, self.batch_size)
+		X_train_gen = sequential_data_generator(
+                        new_celltypes,
+                        self.assays, 
+			X_train,
+                        self.n_genomic_positions,
+                        self.batch_size,
+                        average_data,
+                        desired_window_size
+                )
 
 		if X_valid is not None:
 			X_valid_gen = data_generator(new_celltypes, self.assays, 
@@ -626,22 +645,25 @@ class Guacamole:
 		self.celltypes.extend(new_celltypes)
 		self.n_celltypes = len(self.celltypes)
 
-		model = build_model(n_celltypes=self.n_celltypes,
-							n_celltype_factors=self.n_celltype_factors,
-							n_assays=self.n_assays,
-							n_assay_factors=self.n_assay_factors,
-							n_genomic_positions=self.n_genomic_positions,
-							n_25bp_factors=self.n_25bp_factors,
-							n_250bp_factors=self.n_250bp_factors,
-							n_5kbp_factors=self.n_5kbp_factors,
-							n_layers=self.n_layers,
-							n_nodes=self.n_nodes,
-							freeze_celltypes=self.freeze_celltypes,
-							freeze_assays=self.freeze_assays,
-							freeze_genome_25bp=self.freeze_genome_25bp,
-							freeze_genome_250bp=self.freeze_genome_250bp,
-							freeze_genome_5kbp=self.freeze_genome_5kbp,
-							freeze_network=self.freeze_network)
+		model = build_model(
+                        n_celltypes=self.n_celltypes,
+			n_celltype_factors=self.n_celltype_factors,
+                        average_input_shape=self.average_input_shape
+			n_assays=self.n_assays,
+			n_assay_factors=self.n_assay_factors,
+			n_genomic_positions=self.n_genomic_positions,
+			n_25bp_factors=self.n_25bp_factors,
+			n_250bp_factors=self.n_250bp_factors,
+			n_5kbp_factors=self.n_5kbp_factors,
+			n_layers=self.n_layers,
+			n_nodes=self.n_nodes,
+			freeze_celltypes=self.freeze_celltypes,
+			freeze_assays=self.freeze_assays,
+			freeze_genome_25bp=self.freeze_genome_25bp,
+			freeze_genome_250bp=self.freeze_genome_250bp,
+			freeze_genome_5kbp=self.freeze_genome_5kbp,
+			freeze_network=self.freeze_network
+                )
 
 		for old_layer, new_layer in zip(self.model.layers, model.layers):
 			if 'input' in old_layer.name:
@@ -654,8 +676,8 @@ class Guacamole:
 		self.model = model
 		return history
 
-	def fit_assays(self, X_train, X_valid=None, n_epochs=200, epoch_size=120,
-		verbose=1, callbacks=None, **kwargs):
+	def fit_assays(self, X_train, average_data, desired_window_size, X_valid=None, n_epochs=200, epoch_size=120,
+		       verbose=1, callbacks=None, **kwargs):
 		"""Add a new assay(s) to an otherwise frozen model.
 
 		This method will add a new assay to the assay embedding after
@@ -756,22 +778,25 @@ class Guacamole:
 
 		new_assays = list(numpy.unique([assay for _, assay in X_train.keys()]))
 
-		model = build_model(n_celltypes=self.n_celltypes,
-							n_celltype_factors=self.n_celltype_factors,
-							n_assays=len(new_assays),
-							n_assay_factors=self.n_assay_factors,
-							n_genomic_positions=self.n_genomic_positions,
-							n_25bp_factors=self.n_25bp_factors,
-							n_250bp_factors=self.n_250bp_factors,
-							n_5kbp_factors=self.n_5kbp_factors,
-							n_layers=self.n_layers,
-							n_nodes=self.n_nodes,
-							freeze_celltypes=True,
-							freeze_assays=False,
-							freeze_genome_25bp=True,
-							freeze_genome_250bp=True,
-							freeze_genome_5kbp=True,
-							freeze_network=True)
+		model = build_model(
+                        n_celltypes=self.n_celltypes,
+                        n_celltype_factors=self.n_celltype_factors,
+                        average_input_shape=self.average_input_shape
+			n_assays=len(new_assays),
+			n_assay_factors=self.n_assay_factors,
+			n_genomic_positions=self.n_genomic_positions,
+			n_25bp_factors=self.n_25bp_factors,
+			n_250bp_factors=self.n_250bp_factors,
+			n_5kbp_factors=self.n_5kbp_factors,
+			n_layers=self.n_layers,
+			n_nodes=self.n_nodes,
+			freeze_celltypes=True,
+			freeze_assays=False,
+			freeze_genome_25bp=True,
+			freeze_genome_250bp=True,
+			freeze_genome_5kbp=True,
+			freeze_network=True
+                )
 
 		for old_layer, new_layer in zip(self.model.layers, model.layers):
 			if 'input' in old_layer.name:
@@ -782,8 +807,15 @@ class Guacamole:
 			new_layer.set_weights(old_layer.get_weights())
 
 
-		X_train_gen = sequential_data_generator(self.celltypes, new_assays, 
-			X_train, self.n_genomic_positions, self.batch_size)
+		X_train_gen = sequential_data_generator(
+                        self.celltypes,
+                        new_assays, 
+			X_train,
+                        self.n_genomic_positions,
+                        self.batch_size,
+                        average_data,
+                        desired_window_size
+                )
 
 		if X_valid is not None:
 			X_valid_gen = data_generator(self.celltypes, new_assays, 
@@ -814,22 +846,25 @@ class Guacamole:
 		self.assays.extend(new_assays)
 		self.n_assays = len(self.assays)
 
-		model = build_model(n_celltypes=self.n_celltypes,
-							n_celltype_factors=self.n_celltype_factors,
-							n_assays=self.n_assays,
-							n_assay_factors=self.n_assay_factors,
-							n_genomic_positions=self.n_genomic_positions,
-							n_25bp_factors=self.n_25bp_factors,
-							n_250bp_factors=self.n_250bp_factors,
-							n_5kbp_factors=self.n_5kbp_factors,
-							n_layers=self.n_layers,
-							n_nodes=self.n_nodes,
-							freeze_celltypes=self.freeze_celltypes,
-							freeze_assays=self.freeze_assays,
-							freeze_genome_25bp=self.freeze_genome_25bp,
-							freeze_genome_250bp=self.freeze_genome_250bp,
-							freeze_genome_5kbp=self.freeze_genome_5kbp,
-							freeze_network=self.freeze_network)
+		model = build_model(
+                        n_celltypes=self.n_celltypes,
+			n_celltype_factors=self.n_celltype_factors,
+                        average_input_shape=self.average_input_shape
+			n_assays=self.n_assays,
+			n_assay_factors=self.n_assay_factors,
+			n_genomic_positions=self.n_genomic_positions,
+			n_25bp_factors=self.n_25bp_factors,
+			n_250bp_factors=self.n_250bp_factors,
+			n_5kbp_factors=self.n_5kbp_factors,
+			n_layers=self.n_layers,
+			n_nodes=self.n_nodes,
+			freeze_celltypes=self.freeze_celltypes,
+			freeze_assays=self.freeze_assays,
+			freeze_genome_25bp=self.freeze_genome_25bp,
+			freeze_genome_250bp=self.freeze_genome_250bp,
+			freeze_genome_5kbp=self.freeze_genome_5kbp,
+			freeze_network=self.freeze_network
+                )
 
 		for old_layer, new_layer in zip(self.model.layers, model.layers):
 			if 'input' in old_layer.name:
@@ -842,7 +877,7 @@ class Guacamole:
 		self.model = model
 		return history
 
-	def predict(self, celltype, assay, verbose=0):
+	def predict(self, celltype, assay, average_data, desired_window_size, verbose=0):
 		"""Predict a track of epigenomic data.
 
 		This will predict a track of epigenomic data, resulting in one signal
@@ -880,12 +915,24 @@ class Guacamole:
 		genomic_250bp_idxs = numpy.arange(self.n_genomic_positions) // 10
 		genomic_5kbp_idxs  = numpy.arange(self.n_genomic_positions) // 200
 
+
+                average = np.zeros(subset * desired_window_size)
+
+                for i, idx in enumerate(genomic_25bp_idxs):
+                        average[i * desired_window_size: (i + 1) * desired_window_size] = get_padded_window(
+                                average_data[assay],
+                                idx,
+                                self.n_genomic_positions,
+                                desired_window_size
+                        )
+
 		X = {
 			'celltype_input': celltype_idxs, 
 			'assay_input': assay_idxs, 
 			'genome_25bp_input': genomic_25bp_idxs, 
 			'genome_250bp_input': genomic_250bp_idxs,
-			'genome_5kbp_input': genomic_5kbp_idxs
+			'genome_5kbp_input': genomic_5kbp_idxs,
+                        'average_data', desired_window_size,
 		}
 		
 		track = self.model.predict(X, batch_size=self.batch_size, 

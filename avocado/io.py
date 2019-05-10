@@ -50,9 +50,9 @@ def sequential_data_generator(celltypes, assays, data, n_positions, batch_size, 
                 desired_window_size
             )
         d = {
-            'celltype_input': celltype_idxs, 
-            'assay_input': assay_idxs, 
-            'genome_25bp_input': genomic_25bp_idxs, 
+            'celltype_input': celltype_idxs,
+            'assay_input': assay_idxs,
+            'genome_25bp_input': genomic_25bp_idxs,
             'genome_250bp_input': genomic_250bp_idxs,
             'genome_5kbp_input': genomic_5kbp_idxs,
             'average_input': average.reshape(-1, desired_window_size)
