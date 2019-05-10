@@ -1,10 +1,8 @@
 from setuptools import setup
 
 setup(
-    name='avocado-epigenome',
-    version='0.3.0',
-    author='Jacob Schreiber',
-    author_email='jmschr@cs.washington.edu',
+    name='guacomole-epigenome',
+    version='0.0.1',
     packages=['avocado'],
     license='LICENSE.txt',
     description='Avocado is a package for learning a latent representation of the human epigenome.',
