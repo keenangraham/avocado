@@ -9,7 +9,6 @@ factorization model.
 """
 
 from .io import sequential_data_generator, get_padded_window
-from .io import data_generator
 
 import json
 import numpy
