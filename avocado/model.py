@@ -458,7 +458,7 @@ class Guacamole:
                         self.assays,
                         X_train,
                         self.n_genomic_positions,
-                        self.batch_size
+                        self.batch_size,
                         average_data,
                         desired_window_size
                 )
