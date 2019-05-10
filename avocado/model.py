@@ -20,6 +20,7 @@ from keras.layers import Multiply, Dot, Flatten, concatenate
 from keras.models import Model
 from keras.optimizers import Adam
 
+
 def build_model(n_celltypes, n_celltype_factors, n_assays, n_assay_factors,
 	n_genomic_positions, n_25bp_factors, n_250bp_factors, n_5kbp_factors,
 	n_layers, n_nodes, freeze_celltypes=False, freeze_assays=False,
@@ -75,7 +76,7 @@ def build_model(n_celltypes, n_celltype_factors, n_assays, n_assay_factors,
 	model.compile(optimizer='adam', loss='mse', metrics=['mse'])
 	return model
 
-class Avocado(object):
+class Guacamole:
 	"""An Avocado multi-scale deep tensor factorization model.
 
 	The Avocado model is a multi-scale deep tensor factorization model. It is
@@ -180,12 +181,25 @@ class Avocado(object):
 	>>> track = model.predict("E065", "H3K27me3")
 	"""
 
-	def __init__(self, celltypes, assays, n_celltype_factors=32, 
-		n_assay_factors=256, n_genomic_positions=1126469,
-		n_25bp_factors=25, n_250bp_factors=40, n_5kbp_factors=45, n_layers=2,
-		n_nodes=2048, batch_size=40000, freeze_celltypes=False, 
-		freeze_assays=False, freeze_genome_25bp=False, freeze_genome_250bp=False,
-		freeze_genome_5kbp=False, freeze_network=False):
+        def __init__(self,
+                     celltypes,
+                     assays,
+                     n_celltype_factors=32, 
+		     n_assay_factors=256,
+                     n_genomic_positions=1126469,
+		     n_25bp_factors=25,
+                     n_250bp_factors=40,
+                     n_5kbp_factors=45,
+                     n_layers=2,
+		     n_nodes=2048,
+                     batch_size=40000,
+                     freeze_celltypes=False,
+		     freeze_assays=False,
+                     freeze_genome_25bp=False,
+                     freeze_genome_250bp=False,
+		     freeze_genome_5kbp=False,
+                     freeze_network=False
+        ):
 
 		self.celltypes = list(celltypes)
 		self.assays = list(assays)
