@@ -184,13 +184,14 @@ class Guacamole:
         def __init__(self,
                      celltypes,
                      assays,
+                     average_input_shape=2001,
                      n_celltype_factors=32, 
 		     n_assay_factors=256,
                      n_genomic_positions=1126469,
 		     n_25bp_factors=25,
                      n_250bp_factors=40,
                      n_5kbp_factors=45,
-                     n_layers=2,
+                     n_layers=None,
 		     n_nodes=2048,
                      batch_size=40000,
                      freeze_celltypes=False,
@@ -203,12 +204,10 @@ class Guacamole:
 
 		self.celltypes = list(celltypes)
 		self.assays = list(assays)
-
+                self.average_input_shape = average_input_shape
 		self.n_celltypes = len(celltypes)
 		self.n_assays = len(assays)
-
 		self.batch_size = batch_size
-
 		self.n_celltype_factors = n_celltype_factors
 		self.n_celltype_factors = n_celltype_factors
 		self.n_assay_factors = n_assay_factors
@@ -216,32 +215,41 @@ class Guacamole:
 		self.n_25bp_factors = n_25bp_factors
 		self.n_250bp_factors = n_250bp_factors
 		self.n_5kbp_factors = n_5kbp_factors
+                if n_layers is None:
+                        n_layers = (
+                                self.average_input_shape
+                                + self.n_celltype_factors
+                                + self.n_assay_factors
+                                + self.n_25bp_factors
+                                + self.n_250bp_factors
+                                + self.n_5kbp_factors
+                        )
 		self.n_layers = n_layers
 		self.n_nodes = n_nodes
-
 		self.freeze_celltypes = freeze_celltypes
 		self.freeze_assays = freeze_assays
 		self.freeze_genome_25bp = freeze_genome_25bp
 		self.freeze_genome_250bp = freeze_genome_250bp
 		self.freeze_genome_5kbp = freeze_genome_5kbp
 		self.freeze_network = freeze_network
-
-		self.model = build_model(n_celltypes=self.n_celltypes,
-								 n_celltype_factors=n_celltype_factors,
-								 n_assays=self.n_assays,
-								 n_assay_factors=n_assay_factors,
-								 n_genomic_positions=n_genomic_positions,
-								 n_25bp_factors=n_25bp_factors,
-								 n_250bp_factors=n_250bp_factors,
-								 n_5kbp_factors=n_5kbp_factors,
-								 n_layers=n_layers,
-								 n_nodes=n_nodes,
-								 freeze_celltypes=freeze_celltypes,
-								 freeze_assays=freeze_assays,
-								 freeze_genome_25bp=freeze_genome_25bp,
-								 freeze_genome_250bp=freeze_genome_250bp,
-								 freeze_genome_5kbp=freeze_genome_5kbp,
-								 freeze_network=freeze_network)
+		self.model = build_model(
+                        n_celltypes=self.n_celltypes,
+			n_celltype_factors=n_celltype_factors,
+			n_assays=self.n_assays,
+			n_assay_factors=n_assay_factors,
+			n_genomic_positions=n_genomic_positions,
+			n_25bp_factors=n_25bp_factors,
+			n_250bp_factors=n_250bp_factors,
+			n_5kbp_factors=n_5kbp_factors,
+			n_layers=n_layers,
+			n_nodes=n_nodes,
+			freeze_celltypes=freeze_celltypes,
+			freeze_assays=freeze_assays,
+			freeze_genome_25bp=freeze_genome_25bp,
+			freeze_genome_250bp=freeze_genome_250bp,
+			freeze_genome_5kbp=freeze_genome_5kbp,
+			freeze_network=freeze_network
+                )
 
 	@property
 	def celltype_embedding(self):
