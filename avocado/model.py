@@ -191,8 +191,8 @@ class Guacamole:
 		     n_25bp_factors=25,
                      n_250bp_factors=40,
                      n_5kbp_factors=45,
-                     n_layers=None,
-		     n_nodes=2048,
+                     n_layers=4,
+		     n_nodes=None,
                      batch_size=40000,
                      freeze_celltypes=False,
 		     freeze_assays=False,
@@ -215,8 +215,9 @@ class Guacamole:
 		self.n_25bp_factors = n_25bp_factors
 		self.n_250bp_factors = n_250bp_factors
 		self.n_5kbp_factors = n_5kbp_factors
-                if n_layers is None:
-                        n_layers = (
+                self.n_layers = n_layers
+                if n_nodes is None:
+                        n_nodes = (
                                 self.average_input_shape
                                 + self.n_celltype_factors
                                 + self.n_assay_factors
@@ -224,7 +225,6 @@ class Guacamole:
                                 + self.n_250bp_factors
                                 + self.n_5kbp_factors
                         )
-		self.n_layers = n_layers
 		self.n_nodes = n_nodes
 		self.freeze_celltypes = freeze_celltypes
 		self.freeze_assays = freeze_assays
