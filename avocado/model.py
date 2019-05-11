@@ -8,7 +8,7 @@ of the human epigenome. This file has functions for building a deep tensor
 factorization model.
 """
 
-from .io import sequential_data_generator, get_padded_window
+from .io import sequential_data_generator, get_padded_window, data_generator
 
 import json
 import numpy
@@ -463,8 +463,16 @@ class Guacamole:
                 )
 
                 if X_valid is not None:
-                        X_valid_gen = data_generator(self.celltypes, self.assays, 
-                                X_valid, self.n_genomic_positions, self.batch_size)
+                        X_valid_gen = data_generator(
+                                self.celltypes,
+                                self.assays, 
+                                X_valid,
+                                self.n_genomic_positions,
+                                self.batch_size,
+                                average_data,
+                                desired_window_size,
+                                
+                        )
 
                         history = self.model.fit_generator(X_train_gen, epoch_size, n_epochs, 
                                 workers=1, pickle_safe=True, validation_data=X_valid_gen, 
