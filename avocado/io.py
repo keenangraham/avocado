@@ -1,4 +1,4 @@
-juuimport numpy as np
+import numpy as np
 
 
 def get_padded_window(x, genomic_position, n_positions, desired_window_size):
@@ -70,7 +70,7 @@ def data_generator(celltypes, assays, data, n_positions, batch_size, average_dat
         value = np.zeros(batch_size)
         average = np.zeros(batch_size * desired_window_size)
 
-        keys = data.keys()
+        keys = list(data.keys())
         idxs = np.random.randint(len(data), size=batch_size)
 
         for i, idx in enumerate(idxs):
