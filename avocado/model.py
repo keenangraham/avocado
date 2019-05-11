@@ -921,7 +921,7 @@ class Guacamole:
                 genomic_5kbp_idxs  = numpy.arange(self.n_genomic_positions) // 200
 
 
-                average = numpy.zeros(subset * desired_window_size)
+                average = numpy.zeros(self.n_genomic_positions * desired_window_size)
 
                 for i, idx in enumerate(genomic_25bp_idxs):
                         average[i * desired_window_size: (i + 1) * desired_window_size] = get_padded_window(
